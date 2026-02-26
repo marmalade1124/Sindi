@@ -11,17 +11,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Install Python dependencies
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install Playwright Chromium
 RUN pip install playwright && playwright install chromium --with-deps
 
-# Copy application code
-COPY app/ ./app/
+# Copy application code from backend folder
+COPY backend/app/ ./app/
 
 # Expose port
 EXPOSE 8000
 
-# Start server
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start server on dynamic PORT provided by Railway
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
