@@ -32,6 +32,7 @@ TARGET_PAGES = [
 async def main():
     scraper = FacebookScraper(TARGET_PAGES)
     results = await scraper.run()
+    print(f"[DEBUG_RUNNER] Extracted {len(results)} posts from the target page", file=sys.stderr)
 
     # Convert to JSON-serializable format
     output = []
