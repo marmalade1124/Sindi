@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, StyleSheet, Dimensions, FlatList, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, SafeAreaView, StyleSheet, Dimensions, FlatList, Animated, Platform, StatusBar as RNStatusBar } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -127,7 +127,7 @@ export default function OnboardingScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F5F5F7' },
+  safe: { flex: 1, backgroundColor: '#F5F5F7', paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingVertical: 14, paddingTop: 20,

@@ -3,8 +3,8 @@
  * Centralized service for communicating with the FastAPI backend
  */
 
-// Uses environment variable for production/local, falls back to localhost
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://192.168.1.3:8000";
+// Uses environment variable for production/local, falls back to production
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "https://sindi-production.up.railway.app";
 
 export interface OutageArea {
   id: number;

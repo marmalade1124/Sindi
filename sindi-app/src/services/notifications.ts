@@ -103,7 +103,7 @@ async function syncPushTokenToBackend(token: string) {
     }
 
     // Register/update user with push token
-    const BASE_URL = 'http://192.168.1.3:8000';
+    const BASE_URL = 'https://sindi-production.up.railway.app';
     await fetch(`${BASE_URL}/api/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

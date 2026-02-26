@@ -1,12 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, SafeAreaView, ScrollView, ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
+import { View, Text, SafeAreaView, ScrollView, ActivityIndicator, RefreshControl, StyleSheet, Platform, StatusBar as RNStatusBar } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { fetchOutages, Outage, formatOutageTime, getStatusColor } from '../services/api';
-
-const BASE_URL = 'http://192.168.1.3:8000';
+const BASE_URL = 'https://sindi-production.up.railway.app';
 
 export default function HistoryScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
@@ -150,7 +149,7 @@ export default function HistoryScreen({ navigation }: any) {
 }
 
 const st = StyleSheet.create({
-  safe: { flex: 1 },
+  safe: { flex: 1, paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1 },
   headerTitle: { fontSize: 17, fontWeight: '700' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },

@@ -11,3 +11,4 @@ node_modules/
 sindi-app/node_modules/
 sindi-app/.expo/
 sindi-app/dist/
+sindi-app/*.json 
