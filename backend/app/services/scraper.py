@@ -59,9 +59,10 @@ class FacebookScraper:
                 # Wait for initial load
                 await page.wait_for_timeout(5000)
 
-                # Scroll to load dynamic posts
-                await page.mouse.wheel(0, 2000)
-                await page.wait_for_timeout(3000)
+                # Scroll multiple times to load dynamic posts and get past the "Featured" section
+                for _ in range(4):
+                    await page.mouse.wheel(0, 2500)
+                    await page.wait_for_timeout(2000)
 
                 # Use JavaScript to force-click all "See more" buttons
                 await page.evaluate('''
@@ -73,13 +74,13 @@ class FacebookScraper:
                 ''')
                 await page.wait_for_timeout(2000)
 
+                await page.screenshot(path="debug_facebook.png", full_page=True)
                 html_content = await page.content()
                 await browser.close()
 
                 soup = BeautifulSoup(html_content, "lxml")
                 message_blocks = soup.find_all(attrs={"data-ad-preview": "message"})
-
-                # Fallback to role="article" if no message blocks found
+                
                 if not message_blocks:
                     message_blocks = soup.find_all(role="article")
 
