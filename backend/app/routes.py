@@ -23,6 +23,41 @@ class UserCreate(BaseModel):
 
 # ──────── Outage Endpoints ────────
 
+@router.post("/seed-locations")
+def seed_locations(db: Session = Depends(get_db)):
+    """Seed the database with Nordeco cities and barangays."""
+    from app.db.db_models import LocationDict
+    import json
+    
+    # Base dictionary of cities to barangays
+    locations_data = {
+        "Tagum City": ["Apokon", "Bincungan", "Busaon", "Canocotan", "Cuambogan", "La Filipina", "Liboganon", "Madaum", "Magdum", "Magugpo East", "Magugpo North", "Magugpo Poblacion", "Magugpo South", "Magugpo West", "Mankilam", "New Balamban", "Nueva Fuerza", "Pagsabangan", "Pandapan", "San Agustin", "San Isidro", "San Miguel"],
+        "Panabo City": ["A. O. Floirendo", "Buenavista", "Cacao", "Cagangohan", "Consolacion", "Datu Abdul Dadia", "Gredu", "J.P. Laurel", "Kasilak", "Katipunan", "Katualan", "Kauswagan", "Kiotoy", "Little Panay", "Lower Panaga", "Mabunao", "Maduao", "Malativas", "Manay", "Nanyo", "New Malitbog", "New Pandan", "New Visayas", "Quezon", "Salvacion", "San Francisco", "San Nicolas", "San Pedro", "San Roque", "San Vicente", "Santa Cruz", "Santo Niño", "Sindaton", "Southern Davao", "Tagpore", "Tibungol", "Upper Licanan", "Waterfall"],
+        "Asuncion (Saug)": ["Buan", "Buclad", "Cabaywa", "Camansa", "Camuning", "Canatan", "Concepcion", "Doña Andrea", "Magatos", "Napungas", "New Bantayan", "New Santiago", "Pamacaun", "Poblacion", "Sagayen", "San Vicente", "Santa Filomena", "Sonlon"],
+        "Carmen": ["Alejal", "Anibongan", "Asuncion", "Cebuano", "Guadalupe", "Ising", "La Paz", "Maba-us", "Mabuhay", "Magsaysay", "Mangalcal", "Minda", "New Camiling"],
+        "Tagum": ["Busaon"]
+    }
+
+    try:
+        # Check if already seeded
+        existing = db.query(LocationDict).count()
+        if existing > 0:
+            return {"status": "success", "message": f"Database already seeded with {existing} locations.", "seeded": existing}
+
+        # Seed data
+        count = 0
+        for city, barangays in locations_data.items():
+            for barangay in barangays:
+                loc = LocationDict(city=city, barangay=barangay)
+                db.add(loc)
+                count += 1
+        
+        db.commit()
+        return {"status": "success", "message": f"Successfully seeded {count} locations.", "seeded": count}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error seeding locations: {str(e)}")
+
 @router.get("/outages")
 def list_outages(
     status: Optional[str] = Query(None, description="Filter by status: upcoming, active, resolved"),

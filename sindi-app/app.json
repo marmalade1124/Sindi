@@ -28,6 +28,12 @@
     },
     "plugins": [
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "1d67ac3c-4d44-4e9b-8b96-4fb51331d205"
+      }
+    },
+    "owner": "razielrenz1124"
   }
 }
