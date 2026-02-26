@@ -1,0 +1,13 @@
+# Sindi Backend
+venv/
+__pycache__/
+*.pyc
+.env
+sindi.db
+*.html
+node_modules/
+
+# Sindi App
+sindi-app/node_modules/
+sindi-app/.expo/
+sindi-app/dist/
