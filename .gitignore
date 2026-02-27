@@ -11,4 +11,5 @@ node_modules/
 sindi-app/node_modules/
 sindi-app/.expo/
 sindi-app/dist/
-sindi-app/*.json 
+sindi-app/google-services.json
+sindi-app/sindi-8dc86-firebase-adminsdk-fbsvc-*.json 
