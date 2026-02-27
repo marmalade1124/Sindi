@@ -1,10 +1,9 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, ActivityIndicator, RefreshControl, StyleSheet, TextInput, Platform, StatusBar as RNStatusBar } from 'react-native';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, ActivityIndicator, RefreshControl, StyleSheet, TextInput, Platform, StatusBar as RNStatusBar, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MotiView } from 'moti';
 import { useTheme } from '../contexts/ThemeContext';
 import { fetchActiveOutages, fetchOutages, searchOutages, Outage, formatOutageTime, getStatusColor, getOutageTypeIcon } from '../services/api';
 
@@ -14,12 +13,18 @@ function OutageCard({ outage, onPress, colors, index = 0 }: { outage: Outage; on
   const iconColor = outage.status === 'active' ? colors.dangerText : outage.status === 'upcoming' ? colors.warningText : colors.successText;
   const iconBg = outage.status === 'active' ? colors.dangerBg : outage.status === 'upcoming' ? colors.warningBg : colors.successBg;
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(15)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 400, delay: index * 100, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 400, delay: index * 100, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
   return (
-    <MotiView
-      from={{ opacity: 0, translateY: 15 }}
-      animate={{ opacity: 1, translateY: 0 }}
-      transition={{ type: 'timing', duration: 400, delay: index * 100 }}
-    >
+    <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
       <TouchableOpacity 
         style={[st.card, { backgroundColor: isDarkStr(colors.background) ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.7)', borderColor: colors.borderLight }]} 
         onPress={onPress} 
@@ -53,7 +58,7 @@ function OutageCard({ outage, onPress, colors, index = 0 }: { outage: Outage; on
           </View>
         </View>
       </TouchableOpacity>
-    </MotiView>
+    </Animated.View>
   );
 }
 
@@ -191,10 +196,7 @@ export default function DashboardScreen({ navigation }: any) {
           {hasActiveOutages ? (
             activeOutages.map((o, i) => <OutageCard key={o.id} outage={o} colors={colors} index={i} onPress={() => navigation.navigate('OutageDetails', { outageId: o.id })} />)
           ) : (
-            <MotiView
-              from={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: 'timing', duration: 400 }}
+            <View
               style={[st.emptyBox, { backgroundColor: isDarkStr(colors.background) ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.6)', borderColor: colors.borderLight }]}
             >
               <View style={{ backgroundColor: colors.successBg, padding: 16, borderRadius: 32, marginBottom: 16 }}>
@@ -202,7 +204,7 @@ export default function DashboardScreen({ navigation }: any) {
               </View>
               <Text style={[st.emptyTitle, { color: colors.text }]}>No Active Outages</Text>
               <Text style={[st.emptySub, { color: colors.textMuted }]}>No power interruptions are currently affecting your area. Everything is looking good!</Text>
-            </MotiView>
+            </View>
           )}
 
           <Text style={[st.sectionTitle, { color: colors.text }]}>Upcoming Scheduled</Text>
