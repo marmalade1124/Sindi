@@ -29,11 +29,14 @@ def _parse_datetime(dt_str: str | None) -> datetime | None:
 def _determine_status(start_dt: datetime | None, end_dt: datetime | None) -> str:
     """Determine the outage status based on times."""
     now = datetime.utcnow()
-    if start_dt and start_dt > now:
-        return "upcoming"
     if end_dt and end_dt < now:
         return "resolved"
+    if start_dt and start_dt > now:
+        return "upcoming"
     if start_dt and start_dt <= now:
+        # If it started more than 12 hours ago and has no end time, assume it's resolved
+        if not end_dt and (now - start_dt).total_seconds() > 12 * 3600:
+            return "resolved"
         return "active"
     return "upcoming"
 
