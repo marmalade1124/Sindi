@@ -3,7 +3,7 @@ import subprocess
 import sys
 import os
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.db.database import SessionLocal
 from app.db.db_models import OutageRecord, AffectedArea
 from app.services.push_notifications import send_push_notifications
