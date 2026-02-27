@@ -126,8 +126,7 @@ def get_available_locations():
         "Tagum City": ["Apokon", "Bincungan", "Busaon", "Canocotan", "Cuambogan", "La Filipina", "Liboganon", "Madaum", "Magdum", "Magugpo East", "Magugpo North", "Magugpo Poblacion", "Magugpo South", "Magugpo West", "Mankilam", "New Balamban", "Nueva Fuerza", "Pagsabangan", "Pandapan", "San Agustin", "San Isidro", "San Miguel"],
         "Panabo City": ["A. O. Floirendo", "Buenavista", "Cacao", "Cagangohan", "Consolacion", "Datu Abdul Dadia", "Gredu", "J.P. Laurel", "Kasilak", "Katipunan", "Katualan", "Kauswagan", "Kiotoy", "Little Panay", "Lower Panaga", "Mabunao", "Maduao", "Malativas", "Manay", "Nanyo", "New Malitbog", "New Pandan", "New Visayas", "Quezon", "Salvacion", "San Francisco", "San Nicolas", "San Pedro", "San Roque", "San Vicente", "Santa Cruz", "Santo Niño", "Sindaton", "Southern Davao", "Tagpore", "Tibungol", "Upper Licanan", "Waterfall"],
         "Asuncion (Saug)": ["Buan", "Buclad", "Cabaywa", "Camansa", "Camuning", "Canatan", "Concepcion", "Doña Andrea", "Magatos", "Napungas", "New Bantayan", "New Santiago", "Pamacaun", "Poblacion", "Sagayen", "San Vicente", "Santa Filomena", "Sonlon"],
-        "Carmen": ["Alejal", "Anibongan", "Asuncion", "Cebuano", "Guadalupe", "Ising", "La Paz", "Maba-us", "Mabuhay", "Magsaysay", "Mangalcal", "Minda", "New Camiling"],
-        "Tagum": ["Busaon"]
+        "Carmen": ["Alejal", "Anibongan", "Asuncion", "Cebuano", "Guadalupe", "Ising", "La Paz", "Maba-us", "Mabuhay", "Magsaysay", "Mangalcal", "Minda", "New Camiling"]
     }
 
     result = []

@@ -31,6 +31,20 @@ export default function OnboardingScreen({ navigation }: any) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
+  React.useEffect(() => {
+    const checkOnboardedStatus = async () => {
+      try {
+        const saved = await AsyncStorage.getItem('@sindi_user_location');
+        if (saved) {
+          navigation.replace('Main');
+        }
+      } catch (e) {
+        console.error("Failed to read onboarding status:", e);
+      }
+    };
+    checkOnboardedStatus();
+  }, []);
+
   const handleNext = () => {
     if (currentIndex < SLIDES.length - 1) {
       flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
