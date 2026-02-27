@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "272408742713",
+    "project_id": "sindi-8dc86",
+    "storage_bucket": "sindi-8dc86.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:272408742713:android:11a58cac550825a4c136e8",
+        "android_client_info": {
+          "package_name": "com.sindi.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDU-nJElCwGHlAfFDBLSIi0aZW2yvaHenA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

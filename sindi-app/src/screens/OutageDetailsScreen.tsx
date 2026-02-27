@@ -10,6 +10,7 @@ export default function OutageDetailsScreen({ route, navigation }: any) {
   const { outageId } = route.params;
   const [outage, setOutage] = useState<Outage | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPostExpanded, setIsPostExpanded] = useState(false);
 
   useEffect(() => {
     fetchOutageById(outageId).then(setOutage).catch(console.warn).finally(() => setLoading(false));
@@ -90,7 +91,23 @@ export default function OutageDetailsScreen({ route, navigation }: any) {
           <>
             <Text style={[s.sectionTitle, { color: colors.text }]}>Original Post</Text>
             <View style={[s.postCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
-              <Text style={[s.postText, { color: colors.textSecondary }]}>{outage.post_text}</Text>
+              <Text 
+                style={[s.postText, { color: colors.textSecondary }]}
+                numberOfLines={isPostExpanded ? undefined : 4}
+              >
+                {outage.post_text}
+              </Text>
+              
+              {outage.post_text.length > 150 && (
+                <TouchableOpacity 
+                  onPress={() => setIsPostExpanded(!isPostExpanded)}
+                  style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: colors.borderLight, paddingTop: 10, alignItems: 'center' }}
+                >
+                  <Text style={{ color: colors.accent, fontWeight: '700', fontSize: 13 }}>
+                    {isPostExpanded ? 'Show Less' : 'Read Full Post'}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </>
         )}

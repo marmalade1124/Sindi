@@ -3,44 +3,62 @@ import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, ActivityIndicat
 import { MaterialIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MotiView } from 'moti';
 import { useTheme } from '../contexts/ThemeContext';
 import { fetchActiveOutages, fetchOutages, searchOutages, Outage, formatOutageTime, getStatusColor, getOutageTypeIcon } from '../services/api';
 
-function OutageCard({ outage, onPress, colors }: { outage: Outage; onPress: () => void; colors: any }) {
+function OutageCard({ outage, onPress, colors, index = 0 }: { outage: Outage; onPress: () => void; colors: any; index?: number }) {
   const statusStyle = getStatusColor(outage.status);
   const icon = getOutageTypeIcon(outage.outage_type);
   const iconColor = outage.status === 'active' ? colors.dangerText : outage.status === 'upcoming' ? colors.warningText : colors.successText;
   const iconBg = outage.status === 'active' ? colors.dangerBg : outage.status === 'upcoming' ? colors.warningBg : colors.successBg;
-  const badgeBg = iconBg;
-  const badgeColor = iconColor;
 
   return (
-    <TouchableOpacity style={[st.card, { backgroundColor: colors.cardBg, borderColor: colors.borderLight }]} onPress={onPress} activeOpacity={0.7}>
-      <View style={[st.badge, { backgroundColor: badgeBg }]}>
-        <Text style={[st.badgeText, { color: badgeColor }]}>{statusStyle.label}</Text>
-      </View>
-      <View style={st.cardRow}>
-        <View style={[st.iconCircle, { backgroundColor: iconBg }]}>
-          <MaterialIcons name={icon as any} size={18} color={iconColor} />
+    <MotiView
+      from={{ opacity: 0, translateY: 15 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: 'timing', duration: 400, delay: index * 100 }}
+    >
+      <TouchableOpacity 
+        style={[st.card, { backgroundColor: isDarkStr(colors.background) ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.7)', borderColor: colors.borderLight }]} 
+        onPress={onPress} 
+        activeOpacity={0.7}
+      >
+        <LinearGradient
+           colors={[isDarkStr(colors.background) ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.9)', 'transparent']}
+           style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
+           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        />
+        <View style={[st.badge, { backgroundColor: iconBg }]}>
+          <Text style={[st.badgeText, { color: iconColor }]}>{statusStyle.label}</Text>
         </View>
-        <View style={st.cardBody}>
-          <Text style={[st.cardTitle, { color: colors.text }]} numberOfLines={2}>{outage.reason || 'Power Interruption'}</Text>
-          <Text style={[st.cardType, { color: colors.textMuted }]}>{outage.outage_type} Outage</Text>
-          <View style={st.cardMeta}>
-            <MaterialIcons name="schedule" size={12} color={colors.textMuted} />
-            <Text style={[st.metaText, { color: colors.textMuted }]}>{formatOutageTime(outage.start_datetime)}</Text>
-            {outage.affected_areas.length > 0 && (
-              <>
-                <MaterialIcons name="location-on" size={12} color={colors.textMuted} style={{ marginLeft: 10 }} />
-                <Text style={[st.metaText, { color: colors.textMuted }]}>{outage.affected_areas[0].city}</Text>
-              </>
-            )}
+        <View style={st.cardRow}>
+          <View style={[st.iconCircle, { backgroundColor: iconBg }]}>
+            <MaterialIcons name={icon as any} size={18} color={iconColor} />
+          </View>
+          <View style={st.cardBody}>
+            <Text style={[st.cardTitle, { color: colors.text }]} numberOfLines={2}>{outage.reason || 'Power Interruption'}</Text>
+            <Text style={[st.cardType, { color: colors.textMuted }]}>{outage.outage_type} Outage</Text>
+            <View style={st.cardMeta}>
+              <MaterialIcons name="schedule" size={12} color={colors.textMuted} />
+              <Text style={[st.metaText, { color: colors.textMuted }]}>{formatOutageTime(outage.start_datetime)}</Text>
+              {outage.affected_areas.length > 0 && (
+                <>
+                  <MaterialIcons name="location-on" size={12} color={colors.textMuted} style={{ marginLeft: 10 }} />
+                  <Text style={[st.metaText, { color: colors.textMuted }]}>{outage.affected_areas[0].city}</Text>
+                </>
+              )}
+            </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </MotiView>
   );
 }
+
+// helper to detect dark themes to adjust glass opacity
+const isDarkStr = (c: string) => c === '#0F172A' || c.toLowerCase() === '#121212';
 
 export default function DashboardScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
@@ -94,21 +112,25 @@ export default function DashboardScreen({ navigation }: any) {
   const hasActiveOutages = activeOutages.length > 0;
 
   return (
-    <SafeAreaView style={[st.safe, { backgroundColor: colors.background }]}>
-      <StatusBar style={colors.statusBarStyle} />
+    <LinearGradient
+      colors={isDark ? ['#0F172A', '#1E293B'] : ['#F8FAFC', '#E2E8F0']}
+      style={st.safe}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        <StatusBar style={colors.statusBarStyle} />
 
-      <View style={[st.header, { backgroundColor: colors.background }]}>
-        <View style={st.logoRow}>
-          <MaterialIcons name="bolt" size={24} color="#FFD600" />
-          <Text style={[st.logoText, { color: colors.text }]}>Sindí</Text>
+        <View style={st.header}>
+          <View style={st.logoRow}>
+            <MaterialIcons name="bolt" size={24} color="#FFD600" />
+            <Text style={[st.logoText, { color: colors.text }]}>Sindí</Text>
+          </View>
+          <TouchableOpacity style={st.headerBtn} onPress={() => navigation.navigate('Alerts')}>
+            <MaterialIcons name="notifications-none" size={24} color={colors.text} />
+            {recentOutages.length > 0 && <View style={st.notifDot} />}
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={st.headerBtn} onPress={() => navigation.navigate('Alerts')}>
-          <MaterialIcons name="notifications-none" size={24} color={colors.text} />
-          {recentOutages.length > 0 && <View style={st.notifDot} />}
-        </TouchableOpacity>
-      </View>
 
-      <View style={[st.searchWrap, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+        <View style={[st.searchWrap, { borderBottomColor: colors.border }]}>
         <View style={[st.searchBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <MaterialIcons name="search" size={20} color={colors.textMuted} />
           <TextInput
@@ -146,7 +168,7 @@ export default function DashboardScreen({ navigation }: any) {
               <Text style={[st.emptySmallSub, { color: colors.textMuted }]}>Try a different city, barangay, or keyword.</Text>
             </View>
           ) : (
-            searchResults.map(o => <OutageCard key={o.id} outage={o} colors={colors} onPress={() => navigation.navigate('OutageDetails', { outageId: o.id })} />)
+            searchResults.map((o, i) => <OutageCard key={o.id} outage={o} colors={colors} index={i} onPress={() => navigation.navigate('OutageDetails', { outageId: o.id })} />)
           )}
         </ScrollView>
       ) : (
@@ -167,22 +189,27 @@ export default function DashboardScreen({ navigation }: any) {
           </View>
 
           {hasActiveOutages ? (
-            activeOutages.map(o => <OutageCard key={o.id} outage={o} colors={colors} onPress={() => navigation.navigate('OutageDetails', { outageId: o.id })} />)
+            activeOutages.map((o, i) => <OutageCard key={o.id} outage={o} colors={colors} index={i} onPress={() => navigation.navigate('OutageDetails', { outageId: o.id })} />)
           ) : (
-            <View style={[st.emptyBox, { backgroundColor: colors.cardBg, borderColor: colors.borderLight }]}>
-              <View style={{ backgroundColor: colors.successBg, padding: 12, borderRadius: 28, marginBottom: 12 }}>
-                <MaterialIcons name="check-circle" size={40} color={colors.successText} />
+            <MotiView
+              from={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'timing', duration: 400 }}
+              style={[st.emptyBox, { backgroundColor: isDarkStr(colors.background) ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.6)', borderColor: colors.borderLight }]}
+            >
+              <View style={{ backgroundColor: colors.successBg, padding: 16, borderRadius: 32, marginBottom: 16 }}>
+                <MaterialIcons name="check-circle" size={48} color={colors.successText} />
               </View>
               <Text style={[st.emptyTitle, { color: colors.text }]}>No Active Outages</Text>
-              <Text style={[st.emptySub, { color: colors.textMuted }]}>No power interruptions are currently affecting your area.</Text>
-            </View>
+              <Text style={[st.emptySub, { color: colors.textMuted }]}>No power interruptions are currently affecting your area. Everything is looking good!</Text>
+            </MotiView>
           )}
 
           <Text style={[st.sectionTitle, { color: colors.text }]}>Upcoming Scheduled</Text>
           {upcomingOutages.length > 0 ? (
-            upcomingOutages.map(o => <OutageCard key={o.id} outage={o} colors={colors} onPress={() => navigation.navigate('OutageDetails', { outageId: o.id })} />)
+            upcomingOutages.map((o, i) => <OutageCard key={o.id} outage={o} colors={colors} index={i} onPress={() => navigation.navigate('OutageDetails', { outageId: o.id })} />)
           ) : (
-            <View style={[st.emptyBoxSmall, { backgroundColor: colors.cardBg, borderColor: colors.borderLight }]}>
+            <View style={[st.emptyBoxSmall, { backgroundColor: isDarkStr(colors.background) ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.6)', borderColor: colors.borderLight }]}>
               <MaterialIcons name="event" size={28} color={colors.textMuted} />
               <Text style={[st.emptySmallTitle, { color: colors.textSecondary }]}>No Scheduled Outages</Text>
             </View>
@@ -190,16 +217,17 @@ export default function DashboardScreen({ navigation }: any) {
 
           <Text style={[st.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
           {recentOutages.length > 0 ? (
-            recentOutages.slice(0, 5).map(o => <OutageCard key={o.id} outage={o} colors={colors} onPress={() => navigation.navigate('OutageDetails', { outageId: o.id })} />)
+            recentOutages.slice(0, 5).map((o, i) => <OutageCard key={o.id} outage={o} colors={colors} index={i} onPress={() => navigation.navigate('OutageDetails', { outageId: o.id })} />)
           ) : (
-            <View style={[st.emptyBoxSmall, { backgroundColor: colors.cardBg, borderColor: colors.borderLight }]}>
+            <View style={[st.emptyBoxSmall, { backgroundColor: isDarkStr(colors.background) ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.6)', borderColor: colors.borderLight }]}>
               <MaterialIcons name="campaign" size={28} color={colors.textMuted} />
               <Text style={[st.emptySmallTitle, { color: colors.textSecondary }]}>No Announcements</Text>
             </View>
           )}
         </ScrollView>
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
@@ -220,8 +248,8 @@ const st = StyleSheet.create({
   liveChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1 },
   liveDot: { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
   liveLabel: { fontSize: 10, fontWeight: '800' },
-  card: { borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  badge: { position: 'absolute', top: 10, right: 10, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, zIndex: 10 },
+  card: { borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2, overflow: 'hidden' },
+  badge: { position: 'absolute', top: 12, right: 12, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, zIndex: 10 },
   badgeText: { fontSize: 9, fontWeight: '800', textTransform: 'uppercase' },
   cardRow: { flexDirection: 'row', alignItems: 'flex-start', paddingRight: 70 },
   iconCircle: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
