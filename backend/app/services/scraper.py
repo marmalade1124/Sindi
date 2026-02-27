@@ -4,6 +4,7 @@ from typing import List
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
+from playwright_stealth import stealth_async
 
 from app.models.outage import OutagePost
 from app.services.ai_engine import extract_outage_data_from_text
@@ -54,10 +55,15 @@ class FacebookScraper:
                 ])
 
                 page = await context.new_page()
+                await stealth_async(page)
                 await page.goto(url, wait_until="domcontentloaded")
 
-                # Wait for initial load
-                await page.wait_for_timeout(5000)
+                # Wait for initial load, specifically looking for an article or fallback timeout
+                try:
+                    await page.wait_for_selector('div[role="article"]', timeout=15000)
+                except Exception:
+                    safe_print("Warning: Timed out waiting for an article to load. Proceeding anyway.")
+                    await page.wait_for_timeout(5000)
 
                 # Scroll multiple times to load dynamic posts and get past the "Featured" section
                 for _ in range(4):
