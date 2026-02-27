@@ -69,11 +69,23 @@ class FacebookScraper:
                 for _ in range(4):
                     await page.mouse.wheel(0, 2500)
                     await page.wait_for_timeout(2000)
-
-                # Use JavaScript to force-click all "See more" buttons
+                    
+                    # Intermittently click "See more" buttons as new posts load into the DOM
+                    try:
+                        await page.evaluate('''
+                            document.querySelectorAll('div[role="button"]').forEach(el => {
+                                if(el.innerText && (el.innerText.includes('See more') || el.innerText.includes('See More'))) {
+                                    el.click();
+                                }
+                            });
+                        ''')
+                    except Exception as e:
+                        safe_print(f"Error clicking 'See more': {e}")
+                
+                # One final pass after all scrolls
                 await page.evaluate('''
                     document.querySelectorAll('div[role="button"]').forEach(el => {
-                        if(el.innerText && el.innerText.includes('See more')) {
+                        if(el.innerText && (el.innerText.includes('See more') || el.innerText.includes('See More'))) {
                             el.click();
                         }
                     });
