@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../contexts/ThemeContext';
-import { fetchActiveOutages, fetchOutages, searchOutages, Outage, formatOutageTime, getStatusColor, getOutageTypeIcon } from '../services/api';
+import { fetchActiveOutages, fetchOutages, searchOutages, Outage, formatOutageTime, getStatusColor, getOutageTypeIcon, isUsingCachedData } from '../services/api';
 
 function OutageCard({ outage, onPress, colors, index = 0 }: { outage: Outage; onPress: () => void; colors: any; index?: number }) {
   const statusStyle = getStatusColor(outage.status);
@@ -77,6 +77,7 @@ export default function DashboardScreen({ navigation }: any) {
   const [searching, setSearching] = useState(false);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const searchTimer = useRef<any>(null);
+  const [isOffline, setIsOffline] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -93,6 +94,7 @@ export default function DashboardScreen({ navigation }: any) {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setIsOffline(isUsingCachedData);
     }
   }, []);
 
@@ -150,6 +152,13 @@ export default function DashboardScreen({ navigation }: any) {
           )}
         </View>
       </View>
+
+      {isOffline && (
+        <View style={[st.offlineBanner, { backgroundColor: isDark ? '#422006' : '#fff7ed', borderBottomColor: isDark ? '#92400e' : '#fed7aa' }]}>
+          <MaterialIcons name="cloud-off" size={14} color="#f97316" />
+          <Text style={[st.offlineText, { color: isDark ? '#fde68a' : '#9a3412' }]}>Offline — showing cached data</Text>
+        </View>
+      )}
 
       {loading ? (
         <View style={st.center}>
@@ -241,6 +250,8 @@ const st = StyleSheet.create({
   searchWrap: { paddingHorizontal: 16, paddingBottom: 10, borderBottomWidth: 1 },
   searchBar: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 12, height: 42, borderWidth: 1 },
   searchInput: { flex: 1, fontSize: 14, marginLeft: 8, paddingVertical: 0 },
+  offlineBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, borderBottomWidth: 1 },
+  offlineText: { fontSize: 12, fontWeight: '600' },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   sectionLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 1 },
   sectionTitle: { fontSize: 17, fontWeight: '700', marginTop: 20, marginBottom: 12 },

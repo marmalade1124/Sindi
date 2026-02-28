@@ -1,6 +1,6 @@
 import React from 'react';
 import { Platform } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -18,6 +18,9 @@ import HistoryScreen from '../screens/HistoryScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+// Navigation ref for navigating from outside components (e.g., notification handlers)
+export const navigationRef = createNavigationContainerRef();
 
 function MainTabs() {
   const { colors, isDark } = useTheme();
@@ -94,7 +97,7 @@ function MainTabs() {
 
 export default function AppNavigator() {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Onboarding">
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         <Stack.Screen name="Location" component={LocationScreen} />

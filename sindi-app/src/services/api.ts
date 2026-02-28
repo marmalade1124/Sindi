@@ -2,9 +2,31 @@
  * Sindí API Client
  * Centralized service for communicating with the FastAPI backend
  */
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Uses environment variable for production/local, falls back to production
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "https://sindi-production.up.railway.app";
+
+// ──────── Cache Helpers ────────
+
+const CACHE_PREFIX = '@sindi_cache_';
+
+async function saveCache(key: string, data: any): Promise<void> {
+  try {
+    await AsyncStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ data, timestamp: Date.now() }));
+  } catch {}
+}
+
+async function loadCache<T>(key: string): Promise<{ data: T; timestamp: number } | null> {
+  try {
+    const raw = await AsyncStorage.getItem(CACHE_PREFIX + key);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+
+// Track whether the last fetch used cached data
+export let isUsingCachedData = false;
 
 export interface OutageArea {
   id: number;
@@ -43,15 +65,24 @@ export interface LocationOption {
 // ──────── Outage API ────────
 
 export async function fetchOutages(status?: string, limit = 50): Promise<Outage[]> {
+  const cacheKey = `outages_${status || 'all'}_${limit}`;
   try {
     const params = new URLSearchParams();
     if (status) params.append("status", status);
     params.append("limit", String(limit));
     const res = await fetch(`${BASE_URL}/api/outages?${params.toString()}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
+    const data = await res.json();
+    isUsingCachedData = false;
+    await saveCache(cacheKey, data);
+    return data;
   } catch (err) {
-    console.warn("[API] fetchOutages failed:", err);
+    console.warn("[API] fetchOutages failed, trying cache:", err);
+    const cached = await loadCache<Outage[]>(cacheKey);
+    if (cached) {
+      isUsingCachedData = true;
+      return cached.data;
+    }
     return [];
   }
 }
@@ -60,12 +91,21 @@ export async function fetchActiveOutages(): Promise<Outage[]> {
   try {
     const res = await fetch(`${BASE_URL}/api/outages/active`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
+    const data = await res.json();
+    isUsingCachedData = false;
+    await saveCache('active_outages', data);
+    return data;
   } catch (err) {
-    console.warn("[API] fetchActiveOutages failed:", err);
+    console.warn("[API] fetchActiveOutages failed, trying cache:", err);
+    const cached = await loadCache<Outage[]>('active_outages');
+    if (cached) {
+      isUsingCachedData = true;
+      return cached.data;
+    }
     return [];
   }
 }
+
 
 export async function fetchOutageById(id: number): Promise<Outage | null> {
   try {
