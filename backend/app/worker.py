@@ -15,6 +15,22 @@ TARGET_PAGES = [
 
 scheduler = AsyncIOScheduler()
 
+# ── Scraper Health State ──
+scraper_health = {
+    "last_run": None,           # ISO timestamp of last run
+    "last_success": None,       # ISO timestamp of last successful run
+    "status": "starting",       # "healthy", "degraded", "cookie_expired", "failing", "starting"
+    "posts_found": 0,           # Posts found in last run
+    "saved_count": 0,           # Outages saved in last run
+    "error": None,              # Last error message
+    "consecutive_failures": 0,  # Consecutive failed runs
+}
+
+
+def get_scraper_health() -> dict:
+    """Return a copy of the current scraper health state."""
+    return {**scraper_health}
+
 
 # Philippine timezone offset (UTC+8)
 PHT_OFFSET = timedelta(hours=8)
@@ -55,7 +71,9 @@ async def scrape_job():
     Run the scraper in a separate subprocess to avoid Windows asyncio issues
     with Playwright, then process the results.
     """
+    global scraper_health
     print("[Job] Starting scheduled scraping job via subprocess...")
+    scraper_health["last_run"] = datetime.now(timezone.utc).isoformat()
 
     try:
         # Run the scraper as a subprocess — avoids Windows asyncio event loop issues
@@ -77,7 +95,17 @@ async def scrape_job():
         )
 
         if result.returncode != 0:
-            print(f"[Job] Scraper subprocess failed: {result.stderr[:500]}")
+            error_msg = result.stderr[:500] if result.stderr else "Unknown subprocess error"
+            print(f"[Job] Scraper subprocess failed: {error_msg}")
+
+            # Detect cookie expiry from subprocess output
+            if "COOKIE EXPIRED" in (result.stdout + result.stderr).upper():
+                scraper_health["status"] = "cookie_expired"
+                scraper_health["error"] = "Facebook cookies expired. Update FB_C_USER and FB_XS."
+            else:
+                scraper_health["consecutive_failures"] += 1
+                scraper_health["status"] = "failing"
+                scraper_health["error"] = error_msg
             return
 
         # Parse the JSON output from scrape_runner
@@ -94,10 +122,14 @@ async def scrape_job():
 
         if not json_line:
             print(f"[Job] No JSON output from scraper. stdout: {output[:300]}")
+            scraper_health["consecutive_failures"] += 1
+            scraper_health["status"] = "degraded"
+            scraper_health["error"] = "Scraper returned no JSON output"
             return
 
         posts = json.loads(json_line)
         print(f"[Job] Received {len(posts)} classified posts from subprocess.")
+        scraper_health["posts_found"] = len(posts)
 
         # Process and save to DB
         db = SessionLocal()
@@ -169,16 +201,32 @@ async def scrape_job():
             db.commit()
             print(f"[Job] Done. Saved {saved_count} new outage(s).")
 
+            # ── Update health: success ──
+            scraper_health["last_success"] = datetime.now(timezone.utc).isoformat()
+            scraper_health["status"] = "healthy"
+            scraper_health["saved_count"] = saved_count
+            scraper_health["error"] = None
+            scraper_health["consecutive_failures"] = 0
+
         except Exception as e:
             db.rollback()
             print(f"[Job] Error saving to DB: {e}")
+            scraper_health["consecutive_failures"] += 1
+            scraper_health["status"] = "failing"
+            scraper_health["error"] = f"DB error: {str(e)[:200]}"
         finally:
             db.close()
 
     except subprocess.TimeoutExpired:
         print("[Job] Scraper subprocess timed out after 5 minutes.")
+        scraper_health["consecutive_failures"] += 1
+        scraper_health["status"] = "failing"
+        scraper_health["error"] = "Subprocess timed out (5 min)"
     except Exception as e:
         print(f"[Job] Error running scraper: {e}")
+        scraper_health["consecutive_failures"] += 1
+        scraper_health["status"] = "failing"
+        scraper_health["error"] = str(e)[:200]
 
 
 def start_scheduler():

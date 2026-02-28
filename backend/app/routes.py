@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 
 from app.db.database import get_db
 from app.db.db_models import OutageRecord, AffectedArea, UserProfile
+from app.worker import get_scraper_health
 
 router = APIRouter(prefix="/api")
 
@@ -271,3 +272,12 @@ def _update_outage_statuses(db: Session):
     ).update({"status": "resolved"}, synchronize_session=False)
 
     db.commit()
+
+
+# ──────── Scraper Health ────────
+
+@router.get("/scraper/health")
+def scraper_health_check():
+    """Returns the current scraper health state for monitoring."""
+    health = get_scraper_health()
+    return health
