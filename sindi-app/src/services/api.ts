@@ -89,6 +89,19 @@ export async function searchOutages(query: string): Promise<Outage[]> {
   }
 }
 
+// ──────── Stats API ────────
+
+export async function fetchStats(): Promise<any> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/stats`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.warn("[API] fetchStats failed:", err);
+    return null;
+  }
+}
+
 // ──────── Location API ────────
 
 export async function fetchLocations(): Promise<LocationOption[]> {
@@ -109,6 +122,7 @@ export async function registerUser(data: {
   city?: string;
   barangay?: string;
   emergency_only?: boolean;
+  push_token?: string;
 }): Promise<UserProfile | null> {
   try {
     const res = await fetch(`${BASE_URL}/api/users`, {

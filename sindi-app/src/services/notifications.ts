@@ -102,18 +102,13 @@ async function syncPushTokenToBackend(token: string) {
       emergencyOnly = parsed.emergency_only || false;
     }
 
-    // Register/update user with push token
-    const BASE_URL = 'https://sindi-production.up.railway.app';
-    await fetch(`${BASE_URL}/api/users`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        device_id: deviceId,
-        city,
-        barangay,
-        emergency_only: emergencyOnly,
-        push_token: token,
-      }),
+    // Register/update user with push token via centralized API
+    await registerUser({
+      device_id: deviceId,
+      city,
+      barangay,
+      emergency_only: emergencyOnly,
+      push_token: token,
     });
 
     console.log('[Push] Token synced to backend');

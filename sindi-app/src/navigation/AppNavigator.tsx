@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -36,9 +37,9 @@ function MainTabs() {
           backgroundColor: colors.tabBarBg,
           borderTopWidth: 1,
           borderTopColor: colors.border,
-          paddingBottom: 8,
+          paddingBottom: Platform.OS === 'android' ? 12 : 8,
           paddingTop: 8,
-          height: 64,
+          height: Platform.OS === 'android' ? 72 : 64,
           elevation: 8,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },

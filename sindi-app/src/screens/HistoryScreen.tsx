@@ -4,8 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
-import { fetchOutages, Outage, formatOutageTime, getStatusColor } from '../services/api';
-const BASE_URL = 'https://sindi-production.up.railway.app';
+import { fetchOutages, fetchStats, Outage, formatOutageTime, getStatusColor } from '../services/api';
 
 export default function HistoryScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
@@ -17,7 +16,7 @@ export default function HistoryScreen({ navigation }: any) {
   const loadData = useCallback(async () => {
     try {
       const [statsRes, outagesRes] = await Promise.all([
-        fetch(`${BASE_URL}/api/stats`).then(r => r.json()),
+        fetchStats(),
         fetchOutages(undefined, 50),
       ]);
       setStats(statsRes);

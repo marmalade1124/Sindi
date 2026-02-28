@@ -27,12 +27,16 @@ def send_push_notifications(
         return
 
     # Find users in affected areas who have push tokens
+    # Use fuzzy matching to handle variations like "Tagum" vs "Tagum City"
+    from sqlalchemy import or_
+    city_filters = [UserProfile.city.ilike(f"%{city}%") for city in affected_cities]
+
     users = (
         db.query(UserProfile)
         .filter(
             UserProfile.push_token.isnot(None),
             UserProfile.push_token != "",
-            UserProfile.city.in_(affected_cities),
+            or_(*city_filters) if city_filters else False,
         )
         .all()
     )

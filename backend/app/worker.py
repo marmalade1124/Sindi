@@ -3,7 +3,7 @@ import subprocess
 import sys
 import os
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.db.database import SessionLocal
 from app.db.db_models import OutageRecord, AffectedArea
 from app.services.push_notifications import send_push_notifications
@@ -16,19 +16,28 @@ TARGET_PAGES = [
 scheduler = AsyncIOScheduler()
 
 
+# Philippine timezone offset (UTC+8)
+PHT_OFFSET = timedelta(hours=8)
+
+
 def _parse_datetime(dt_str: str | None) -> datetime | None:
-    """Safely parse an ISO datetime string."""
+    """Safely parse an ISO datetime string and convert from PHT to UTC.
+    The AI extracts Philippine Time, so we subtract 8 hours for UTC storage."""
     if not dt_str:
         return None
     try:
-        return datetime.fromisoformat(dt_str)
+        dt = datetime.fromisoformat(dt_str)
+        # If naive (no timezone info), assume it's PHT and convert to UTC
+        if dt.tzinfo is None:
+            dt = dt - PHT_OFFSET
+        return dt
     except (ValueError, TypeError):
         return None
 
 
 def _determine_status(start_dt: datetime | None, end_dt: datetime | None) -> str:
     """Determine the outage status based on times."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     if end_dt and end_dt < now:
         return "resolved"
     if start_dt and start_dt > now:
@@ -100,7 +109,7 @@ async def scrape_job():
                     continue
 
                 # Deduplication
-                cutoff = datetime.utcnow() - timedelta(hours=24)
+                cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=24)
                 existing = db.query(OutageRecord).filter(
                     OutageRecord.source_post_url == post.get("source_url", ""),
                     OutageRecord.reason == post.get("reason"),

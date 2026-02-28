@@ -129,10 +129,7 @@ export default function DashboardScreen({ navigation }: any) {
             <MaterialIcons name="bolt" size={24} color="#FFD600" />
             <Text style={[st.logoText, { color: colors.text }]}>Sindí</Text>
           </View>
-          <TouchableOpacity style={st.headerBtn} onPress={() => navigation.navigate('Alerts')}>
-            <MaterialIcons name="notifications-none" size={24} color={colors.text} />
-            {recentOutages.length > 0 && <View style={st.notifDot} />}
-          </TouchableOpacity>
+          <View style={{ width: 40 }} />
         </View>
 
         <View style={[st.searchWrap, { borderBottomColor: colors.border }]}>

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.db.database import get_db
 from app.db.db_models import OutageRecord, AffectedArea, UserProfile
@@ -256,7 +256,7 @@ async def trigger_scrape():
 
 def _update_outage_statuses(db: Session):
     """Auto-update outage statuses based on current time."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
 
     db.query(OutageRecord).filter(
         OutageRecord.status == "upcoming",

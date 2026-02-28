@@ -92,7 +92,6 @@ class FacebookScraper:
                 ''')
                 await page.wait_for_timeout(2000)
 
-                await page.screenshot(path="debug_facebook.png", full_page=True)
                 html_content = await page.content()
                 await browser.close()
 
